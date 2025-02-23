@@ -41,3 +41,16 @@ This application requires a valid bearer token in order to access the patient ma
 ## Documentation
 
 The application hosts its own documentation at `/public/docs`.  The swagger ui is available, but will not work for authenticated routes.  Additionally, an openapi spec can be found at `/public/docs/openapi.json`
+
+## Testing
+
+To run all tests (both integration and unit), run `go test ./...` 
+
+
+### Integration Tests
+
+Integration tests are located at root in a file named `integration_test.go`.  They are "black box" tests written from the perspective of an outside consumer and work by calling api endopints and verifying the responses. The tests begin by spinning up the application locally and sending requests, so there is no need to manually start the server before running the integration tests.
+
+#### Unit Tests
+
+Unit tests are located within each `service` folder.  The integration tests provide the validation for the http and database layers, and unit tests are scoped to the central business logic of the application.
