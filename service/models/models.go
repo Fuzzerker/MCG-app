@@ -7,6 +7,18 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+type UserRequest struct {
+	Username string `json:"username" required:"true" minLength:"6" description:"Username of the user"`
+	Password string `json:"password" required:"true" minLength:"6" description:"Password the user will use to log in"`
+}
+
+type LoginResponse struct {
+	Token string `json:"token" descripiton:"access token generated for the given credentials.  Should be sent as a bearer token on all future requests"`
+}
+
+type Empty struct {
+}
+
 type User struct {
 	Username string
 	Password string
@@ -26,7 +38,7 @@ type CreateAttatchmentRequest struct {
 }
 
 type UpdatePatientRequest struct {
-	Patient
+	PatientRequest
 	Id int `path:"id"`
 }
 
@@ -34,13 +46,21 @@ type DeleteByIdRequest struct {
 	Id int `path:"id"`
 }
 
+type PatientRequest struct {
+	Name               string    `json:"name" required:"true" minLength:"3" description:"name of the patient"`
+	Address            string    `json:"address"  description:"address of the patient"`
+	PhoneNumber        string    `json:"phoneNumber" required:"true" minLength:"10" description:"phone number of the patient"`
+	ExternalIdentifier string    `json:"externalIdentifier" required:"true" minLength:"3" description:"External identifier of the patient (for example - social security number)"`
+	DateOfBirth        time.Time `json:"dateOfBirth" description:"date of birth of patient" required:"true"`
+}
+
 type Patient struct {
-	Id                  int                  `json:"id" description:"Internal id of the patient"`
 	Name                string               `json:"name" required:"true" minLength:"3" description:"name of the patient"`
 	Address             string               `json:"address"  description:"address of the patient"`
-	PhoneNumber         string               `json:"oneNumber" required:"true" minLength:"10" description:"phone number of the patient"`
+	PhoneNumber         string               `json:"phoneNumber" required:"true" minLength:"10" description:"phone number of the patient"`
 	ExternalIdentifier  string               `json:"externalIdentifier" required:"true" minLength:"3" description:"External identifier of the patient (for example - social security number)"`
 	DateOfBirth         time.Time            `json:"dateOfBirth" description:"date of birth of patient" required:"true"`
+	Id                  int                  `json:"id" description:"Internal id of the patient"`
 	DiagnosedConditions []DiagnosedCondition `json:"diagnosedConditions" description:"conditions with which the patient has been diagnosed"`
 	Attatchments        []Attatchment        `json:"attatchments" description:"attatchments for theph patient.  Could be any form of medical imaging or doctor's reports"`
 }

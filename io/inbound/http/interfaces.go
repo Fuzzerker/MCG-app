@@ -16,10 +16,10 @@ type AuthService interface {
 }
 
 type PatientService interface {
-	CreatePatient(ctx context.Context, name string, address string, phoneNumber string, externalIdentifier string) (models.Patient, error)
+	CreatePatient(ctx context.Context, name string, address string, phoneNumber string, dateOfBirth time.Time, externalIdentifier string) (models.Patient, error)
 	SearchPatients(ctx context.Context, search models.PatientSearch) ([]models.Patient, error)
 	DeletePatient(ctx context.Context, patientId int) error
-	UpdatePatient(ctx context.Context, patient models.Patient) (models.Patient, error)
+	UpdatePatient(ctx context.Context, id int, name string, address string, phoneNumber string, dateOfBirth time.Time, externalIdentifier string) (models.Patient, error)
 }
 
 type AttatchmentService interface {

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	inboundhttp "mcg-app-backend/io/inbound/http"
 	"mcg-app-backend/service/models"
 	"mime/multipart"
 	"net/http"
@@ -307,7 +306,7 @@ func testPatientUpdate(results TestResults) TestResults {
 	results.Add("test update patient with missing fields", putAndEnsureStatus(path, models.Patient{
 		Name: "john smith",
 	}, 400, nil))
-	patient := models.Patient{
+	patient := models.PatientRequest{
 		Name:               "Jane Smith",
 		Address:            "185 main street",
 		PhoneNumber:        "8044955579",
@@ -355,6 +354,7 @@ func testPatientCreate(results TestResults) TestResults {
 	patient.ExternalIdentifier = "abc"
 	patient.Name = "Jane Smith"
 	results.Add("test create second patient", postAndEnsureStatus(path, patient, 200, &patient))
+	fmt.Println("patientID", patient.Id)
 	results.Add("test ensure id on new patient", func() error {
 		if patient.Id > 0 {
 			return nil
@@ -368,15 +368,15 @@ func testPatientCreate(results TestResults) TestResults {
 
 func testUserLogin(results TestResults) TestResults {
 	path := "/public/users/login"
-	results.Add("test login invalid username", postAndEnsureStatus(path, inboundhttp.UserRequest{
+	results.Add("test login invalid username", postAndEnsureStatus(path, models.UserRequest{
 		Username: "aaaaaaaa",
 	}, 400, nil))
-	results.Add("test login invalid password", postAndEnsureStatus(path, inboundhttp.UserRequest{
+	results.Add("test login invalid password", postAndEnsureStatus(path, models.UserRequest{
 		Username: "abcdefg",
 		Password: "aaaaaaa",
 	}, 400, nil))
-	var loginResponse inboundhttp.LoginResponse
-	results.Add("test login valid password", postAndEnsureStatus(path, inboundhttp.UserRequest{
+	var loginResponse models.LoginResponse
+	results.Add("test login valid password", postAndEnsureStatus(path, models.UserRequest{
 		Username: "abcdefg",
 		Password: "abcdefg",
 	}, 200, &loginResponse))
@@ -386,16 +386,16 @@ func testUserLogin(results TestResults) TestResults {
 
 func testUserCreate(results TestResults) TestResults {
 	path := "/public/users"
-	results.Add("test post user with incomplete body", postAndEnsureStatus(path, inboundhttp.UserRequest{
+	results.Add("test post user with incomplete body", postAndEnsureStatus(path, models.UserRequest{
 		Username: "abcdefg",
 	}, 400, nil))
 
-	results.Add("test post user with success body", postAndEnsureStatus(path, inboundhttp.UserRequest{
+	results.Add("test post user with success body", postAndEnsureStatus(path, models.UserRequest{
 		Username: "abcdefg",
 		Password: "abcdefg",
 	}, 204, nil))
 
-	results.Add("test post user with duplicate username", postAndEnsureStatus(path, inboundhttp.UserRequest{
+	results.Add("test post user with duplicate username", postAndEnsureStatus(path, models.UserRequest{
 		Username: "abcdefg",
 		Password: "abcdefg",
 	}, 409, nil))

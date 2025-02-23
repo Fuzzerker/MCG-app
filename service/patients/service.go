@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"mcg-app-backend/service/customerrors"
 	"mcg-app-backend/service/models"
+	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 )
@@ -22,13 +23,14 @@ func NewPatientService(repo PatientRepo, tracer Tracer) PatientService {
 	}
 }
 
-func (s PatientService) CreatePatient(ctx context.Context, name string, address string, phoneNumber string, externalIdentifier string) (models.Patient, error) {
+func (s PatientService) CreatePatient(ctx context.Context, name string, address string, phoneNumber string, dateOfBirth time.Time, externalIdentifier string) (models.Patient, error) {
 	ctx, span := s.tracer.NewSpan(ctx, "CreatePatient")
 	defer span.End()
 	s.tracer.SetAttributes(ctx,
+		attribute.String("address", address),
 		attribute.String("name", name),
-		attribute.String("phoneNumber", phoneNumber),
-		attribute.String("address", address))
+		attribute.String("dateOfBirth", fmt.Sprintf("%v", dateOfBirth)),
+		attribute.String("phoneNumber", phoneNumber))
 
 	count, err := s.repo.GetCountOfExternalIdentifier(ctx, externalIdentifier)
 	if err != nil {
@@ -43,6 +45,7 @@ func (s PatientService) CreatePatient(ctx context.Context, name string, address 
 		PhoneNumber:        phoneNumber,
 		Address:            address,
 		ExternalIdentifier: externalIdentifier,
+		DateOfBirth:        dateOfBirth,
 	}
 
 	id, err := s.repo.InsertPatient(ctx, patient)
@@ -53,19 +56,29 @@ func (s PatientService) CreatePatient(ctx context.Context, name string, address 
 	return patient, nil
 }
 
-func (s PatientService) UpdatePatient(ctx context.Context, patient models.Patient) (models.Patient, error) {
+func (s PatientService) UpdatePatient(ctx context.Context, id int, name string, address string, phoneNumber string, dateOfBirth time.Time, externalIdentifier string) (models.Patient, error) {
 	ctx, span := s.tracer.NewSpan(ctx, "UpdatePatient")
 	defer span.End()
 	s.tracer.SetAttributes(ctx,
-		attribute.Int("patient.Id", patient.Id),
-		attribute.String("patient.address", patient.Address),
-		attribute.String("patient.name", patient.Name),
-		attribute.String("patient.phoneNumber", patient.PhoneNumber),
+		attribute.Int("id", id),
+		attribute.String("address", address),
+		attribute.String("name", name),
+		attribute.String("dateOfBirth", fmt.Sprintf("%v", dateOfBirth)),
+		attribute.String("phoneNumber", phoneNumber),
 	)
 
-	err := s.ValidatePatientId(ctx, patient.Id)
+	err := s.ValidatePatientId(ctx, id)
 	if err != nil {
 		return models.Patient{}, err
+	}
+
+	patient := models.Patient{
+		Name:               name,
+		Id:                 id,
+		Address:            address,
+		PhoneNumber:        phoneNumber,
+		ExternalIdentifier: externalIdentifier,
+		DateOfBirth:        dateOfBirth,
 	}
 
 	err = s.repo.UpdatePatient(ctx, patient)

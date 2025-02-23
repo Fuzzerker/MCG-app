@@ -36,7 +36,7 @@ func (server *HttpServer) Start() {
 	server.webService.OpenAPISchema().SetTitle("MCG Patient API")
 	server.webService.OpenAPISchema().SetDescription("This service provides an API to manage patient data.")
 	server.webService.OpenAPISchema().SetVersion("v1.0.0")
-	address := "localhost:8080"
+	address := "0.0.0.0:8080"
 	server.setupRoutes()
 	server.logger.Info("listening at", zap.String("adress", address))
 	server.webService.Docs("/public/docs", swgui.New)

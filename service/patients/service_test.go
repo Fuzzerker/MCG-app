@@ -7,6 +7,7 @@ import (
 	"mcg-app-backend/service/customerrors"
 	"mcg-app-backend/service/models"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -81,7 +82,7 @@ func TestCreatePatient(t *testing.T) {
 		mockRepo.On("GetCountOfExternalIdentifier", mock.Anything, externalIdentifier).Return(0, nil)
 		mockRepo.On("InsertPatient", mock.Anything, mock.AnythingOfType("models.Patient")).Return(1, nil)
 
-		patient, err := service.CreatePatient(context.Background(), name, address, phoneNumber, externalIdentifier)
+		patient, err := service.CreatePatient(context.Background(), name, address, phoneNumber, time.Now(), externalIdentifier)
 		assert.Nil(t, err)
 		assert.Equal(t, name, patient.Name)
 
@@ -92,7 +93,7 @@ func TestCreatePatient(t *testing.T) {
 		mockRepo, service := getMocksAndService()
 		mockRepo.On("GetCountOfExternalIdentifier", mock.Anything, externalIdentifier).Return(1, nil)
 
-		patient, err := service.CreatePatient(context.Background(), name, address, phoneNumber, externalIdentifier)
+		patient, err := service.CreatePatient(context.Background(), name, address, phoneNumber, time.Now(), externalIdentifier)
 		assert.NotNil(t, err)
 		assert.Empty(t, patient)
 		var alreadyExists customerrors.AlreadyExistsError
@@ -105,7 +106,7 @@ func TestCreatePatient(t *testing.T) {
 		mockRepo, service := getMocksAndService()
 		mockRepo.On("GetCountOfExternalIdentifier", mock.Anything, externalIdentifier).Return(0, fmt.Errorf("db error"))
 
-		patient, err := service.CreatePatient(context.Background(), name, address, phoneNumber, externalIdentifier)
+		patient, err := service.CreatePatient(context.Background(), name, address, phoneNumber, time.Now(), externalIdentifier)
 		assert.NotNil(t, err)
 		assert.Empty(t, patient)
 
@@ -117,7 +118,7 @@ func TestCreatePatient(t *testing.T) {
 		mockRepo.On("GetCountOfExternalIdentifier", mock.Anything, externalIdentifier).Return(0, nil)
 		mockRepo.On("InsertPatient", mock.Anything, mock.AnythingOfType("models.Patient")).Return(0, fmt.Errorf("db error"))
 
-		patient, err := service.CreatePatient(context.Background(), name, address, phoneNumber, externalIdentifier)
+		patient, err := service.CreatePatient(context.Background(), name, address, phoneNumber, time.Now(), externalIdentifier)
 		assert.NotNil(t, err)
 		assert.Empty(t, patient)
 
@@ -138,7 +139,7 @@ func TestUpdatePatient(t *testing.T) {
 		mockRepo.On("GetCountOfPatientId", mock.Anything, patient.Id).Return(1, nil) // Mocking the patient ID count to be 1 (valid)
 		mockRepo.On("UpdatePatient", mock.Anything, patient).Return(nil)
 
-		updatedPatient, err := service.UpdatePatient(context.Background(), patient)
+		updatedPatient, err := service.UpdatePatient(context.Background(), patient.Id, patient.Name, patient.Address, patient.PhoneNumber, patient.DateOfBirth, patient.ExternalIdentifier)
 		assert.Nil(t, err)
 		assert.Equal(t, patient.Name, updatedPatient.Name)
 
@@ -149,7 +150,7 @@ func TestUpdatePatient(t *testing.T) {
 		mockRepo, service := getMocksAndService()
 		mockRepo.On("GetCountOfPatientId", mock.Anything, patient.Id).Return(0, nil) // Mocking the patient ID count to be 0 (invalid)
 
-		updatedPatient, err := service.UpdatePatient(context.Background(), patient)
+		updatedPatient, err := service.UpdatePatient(context.Background(), patient.Id, patient.Name, patient.Address, patient.PhoneNumber, patient.DateOfBirth, patient.ExternalIdentifier)
 		assert.NotNil(t, err)
 		assert.Equal(t, "patient id not found", err.Error())
 		assert.Empty(t, updatedPatient)
@@ -162,7 +163,7 @@ func TestUpdatePatient(t *testing.T) {
 		mockRepo.On("GetCountOfPatientId", mock.Anything, patient.Id).Return(1, nil)
 		mockRepo.On("UpdatePatient", mock.Anything, patient).Return(fmt.Errorf("db error"))
 
-		updatedPatient, err := service.UpdatePatient(context.Background(), patient)
+		updatedPatient, err := service.UpdatePatient(context.Background(), patient.Id, patient.Name, patient.Address, patient.PhoneNumber, patient.DateOfBirth, patient.ExternalIdentifier)
 		assert.NotNil(t, err)
 		assert.Equal(t, "error updating patient db error", err.Error())
 		assert.Empty(t, updatedPatient)
